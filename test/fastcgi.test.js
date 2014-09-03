@@ -2,8 +2,7 @@ var vows = require("vows"),
 	assert = require("assert"),
 	fastcgi = require("../lib/"),
 	streamBuffers = require("stream-buffers"),
-	DuplexStream = require("duplex-stream"),
-	bufferUtils = require("../lib/buffer_utils.js");
+	DuplexStream = require("duplex-stream");
 
 var createRecordSanityChecks = function(opts) {
 	var context = {
@@ -19,13 +18,13 @@ var createRecordSanityChecks = function(opts) {
 			return record;
 		}
 	};
-	
+
 	if(opts.expectedSize !== undefined) {
 		context["record calculates its size correctly"] = function(record) {
 			assert.equal(record.getSize(), opts.expectedSize);
 		};
 	};
-	
+
 	if(opts.expectedType) {
 		context["record has correct type"] = function(record) {
 			assert.equal(record.TYPE, opts.expectedType);
@@ -44,11 +43,11 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		"VERSION": function() {
 			assert.equal(fastcgi.constants.VERSION, 1);
 		},
-		
+
 		"HEADER_LEN": function() {
 			assert.equal(fastcgi.constants.HEADER_LEN, 8);
 		},
-		
+
 		"NULL_REQUEST_ID": function() {
 			assert.strictEqual(fastcgi.constants.NULL_REQUEST_ID, 0);
 		}
@@ -59,22 +58,22 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		"RESPONDER": function() {
 			assert.equal(fastcgi.records.BeginRequest.roles.RESPONDER, 1);
 		},
-		
+
 		"AUTHORIZER": function() {
 			assert.equal(fastcgi.records.BeginRequest.roles.AUTHORIZER, 2);
 		},
-		
+
 		"FILTER": function() {
 			assert.equal(fastcgi.records.BeginRequest.roles.FILTER, 3);
 		},
 	},
-	
+
 	"BeginRequest Flags constants": {
 		"KEEP_CONN": function() {
 			assert.equal(fastcgi.records.BeginRequest.flags.KEEP_CONN);
 		}
 	},
-	
+
 	"EndRequest Protocol Status constants": {
 		"REQUEST_COMPLETE": function() {
 			assert.equal(fastcgi.records.EndRequest.protocolStatus.REQUEST_COMPLETE, 0);
@@ -92,19 +91,19 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 			assert.equal(fastcgi.records.EndRequest.protocolStatus.UNKNOWN_ROLE, 3);
 		}
 	},
-	
+
 	"BeginRequest": createRecordSanityChecks({
 		class: fastcgi.records.BeginRequest,
 		expectedSize: 8,
 		expectedType: 1
 	}),
-	
+
 	"AbortRequest": createRecordSanityChecks({
 		class: fastcgi.records.AbortRequest,
 		expectedSize: 0,
 		expectedType: 2
 	}),
-	
+
 	"EndRequest": createRecordSanityChecks({
 		class: fastcgi.records.EndRequest,
 		expectedSize: 8,
@@ -116,7 +115,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		expectedSize: 0,
 		expectedType: 4
 	}),
-	
+
 	"Params (with values)": createRecordSanityChecks({
 		class: fastcgi.records.Params,
 		values: {
@@ -124,7 +123,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		},
 		expectedSize: 36
 	}),
-	
+
 	"Params (with large values)": createRecordSanityChecks({
 		class: fastcgi.records.Params,
 		values: {
@@ -140,7 +139,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		},
 		expectedSize: 1 + 16 + 1 + 16
 	}),
-	
+
 	"Params (with unicode lagre values)": createRecordSanityChecks({
 		class: fastcgi.records.Params,
 		values: {
@@ -148,109 +147,109 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		},
 		expectedSize: 1 + 16 + 4 + 146
 	}),
-	
+
 	"StdIn (no data)": createRecordSanityChecks({
 		class: fastcgi.records.StdIn,
 		expectedSize: 0,
 		expectedType: 5
 	}),
-	
+
 	"StdIn (basic string)": createRecordSanityChecks({
 		class: fastcgi.records.StdIn,
 		values: { data: "Hello" },
 		expectedSize: 5
 	}),
-	
+
 	"StdIn (unicode string)": createRecordSanityChecks({
 		class: fastcgi.records.StdIn,
 		values: { data: '\u00bd + \u00bc = \u00be' },
 		expectedSize: 12
 	}),
-	
+
 	"StdIn (buffer)": createRecordSanityChecks({
 		class: fastcgi.records.StdIn,
 		values: { data: new Buffer(10) },
 		expectedSize: 10
 	}),
-	
+
 	"StdOut (no data)": createRecordSanityChecks({
 		class: fastcgi.records.StdOut,
 		expectedSize: 0,
 		expectedType: 6
 	}),
-	
+
 	"StdOut (basic string)": createRecordSanityChecks({
 		class: fastcgi.records.StdOut,
 		values: { data: "Hello" },
 		expectedSize: 5
 	}),
-	
+
 	"StdOut (unicode string)": createRecordSanityChecks({
 		class: fastcgi.records.StdOut,
 		values: { data: '\u00bd + \u00bc = \u00be' },
 		expectedSize: 12
 	}),
-	
+
 	"StdOut (buffer)": createRecordSanityChecks({
 		class: fastcgi.records.StdOut,
 		values: { data: new Buffer(10) },
 		expectedSize: 10
 	}),
-	
+
 	"StdErr (no data)": createRecordSanityChecks({
 		class: fastcgi.records.StdErr,
 		expectedSize: 0,
 		expectedType: 7
 	}),
-	
+
 	"StdErr (basic string)": createRecordSanityChecks({
 		class: fastcgi.records.StdErr,
 		values: { data: "Hello" },
 		expectedSize: 5
 	}),
-	
+
 	"StdErr (unicode string)": createRecordSanityChecks({
 		class: fastcgi.records.StdErr,
 		values: { data: '\u00bd + \u00bc = \u00be' },
 		expectedSize: 12
 	}),
-	
+
 	"StdErr (buffer)": createRecordSanityChecks({
 		class: fastcgi.records.StdErr,
 		values: { data: new Buffer(10) },
 		expectedSize: 10
 	}),
-	
+
 	"Data (no data)": createRecordSanityChecks({
 		class: fastcgi.records.Data,
 		expectedSize: 0,
 		expectedType: 8
 	}),
-	
+
 	"Data (basic string)": createRecordSanityChecks({
 		class: fastcgi.records.Data,
 		values: { data: "Hello" },
 		expectedSize: 5
 	}),
-	
+
 	"Data (unicode string)": createRecordSanityChecks({
 		class: fastcgi.records.Data,
 		values: { data: '\u00bd + \u00bc = \u00be' },
 		expectedSize: 12
 	}),
-	
+
 	"Data (buffer)": createRecordSanityChecks({
 		class: fastcgi.records.Data,
 		values: { data: new Buffer(10) },
 		expectedSize: 10
 	}),
-	
+
 	"GetValues (empty)": createRecordSanityChecks({
 		class: fastcgi.records.GetValues,
 		expectedSize: 0,
 		expectedType: 9
 	}),
-	
+
 	"GetValues (with values)": createRecordSanityChecks({
 		class: fastcgi.records.GetValues,
 		values: {
@@ -258,7 +257,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		},
 		expectedSize: 19
 	}),
-	
+
 	"GetValues (with large values)": createRecordSanityChecks({
 		class: fastcgi.records.GetValues,
 		values: {
@@ -272,7 +271,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		expectedSize: 0,
 		expectedType: 10
 	}),
-	
+
 	"GetValuesResult (with values)": createRecordSanityChecks({
 		class: fastcgi.records.GetValuesResult,
 		values: {
@@ -280,7 +279,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		},
 		expectedSize: 36
 	}),
-	
+
 	"GetValuesResult (with large values)": createRecordSanityChecks({
 		class: fastcgi.records.GetValuesResult,
 		values: {
@@ -288,7 +287,7 @@ vows.describe("FastCGIStream Sanity Checks").addBatch({
 		},
 		expectedSize: 280
 	}),
-	
+
 	"UnknownType": createRecordSanityChecks({
 		class: fastcgi.records.UnknownType,
 		expectedSize: 8,
@@ -302,11 +301,11 @@ var createFCGIStream = function(chunkSize) {
 		chunkSize: chunkSize || streamBuffers.DEFAULT_CHUNK_SIZE
 	});
 	var writableStream = new streamBuffers.WritableStreamBuffer();
-	
+
 	var fcgiStream = new fastcgi.FastCGIStream(new DuplexStream(readableStream, writableStream));
 	fcgiStream._readableStream = readableStream;
 	fcgiStream._writableStream = writableStream;
-	
+
 	return fcgiStream;
 };
 
@@ -321,28 +320,28 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 	switch(record.TYPE) {
 		case fastcgi.records.BeginRequest.TYPE: {
 			tests["role is correct"] = function(body) {
-				assert.equal(bufferUtils.getInt16(body, 0), record.role);
+				assert.equal(body.readUInt16BE(0), record.role);
 			};
-			
+
 			tests["flags are correct"] = function(body) {
 				assert.equal(body[2], record.flags);
 			};
-			
+
 			return tests;
 		}
 		case fastcgi.records.EndRequest.TYPE: {
 			tests["appStatus is correct"] = function(body) {
-				assert.equal(bufferUtils.getInt32(body, 0), record.appStatus);
+				assert.equal(body.readUInt32BE(0), record.appStatus);
 			};
-			
+
 			tests["protocolStatus is correct"] = function(body) {
-				assert.equal(body[4], record.protocolStatus);				
+				assert.equal(body[4], record.protocolStatus);
 			};
-			
+
 			return tests;
 		}
 		case fastcgi.records.Params.TYPE:
-		case fastcgi.records.GetValues.TYPE: 
+		case fastcgi.records.GetValues.TYPE:
 		case fastcgi.records.GetValuesResult.TYPE: {
 			var theParams = record.params || record.values || record.result;
 
@@ -351,7 +350,7 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 			var paramSizes = [];
 			var pairSizes = theParams.map(function(param) {
 				if(!Array.isArray(param)) param = [param, ""];
-				
+
 				var keySize, valueSize, paramSize = 0;
                 var lengths = param.map(function (element) {
                     return Buffer.byteLength(element);
@@ -360,7 +359,7 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 				paramSize += (lengths[1] > 127) ? 4 : 1;
 				keySize = lengths[0];
 				valueSize = lengths[1];
-				
+
 				paramSize += keySize + valueSize;
 				paramSizes.push(paramSize);
 				totalSize += paramSize;
@@ -371,7 +370,7 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 			tests["overall length is correct"] = function(body) {
 				assert.equal(body.length, totalSize);
 			};
-			
+
 			var currentPos = 0;
 			theParams.forEach(function(param, index) {
 				if(!Array.isArray(param)) param = [param, ""];
@@ -382,10 +381,10 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 							return body.slice(thePos, thePos + theLength);
 						};
 					})(currentPos, paramSizes[index]),
-					
+
 					"key length is correct": function(paramBuffer) {
 						if(pairSizes[index].keySize > 127) {
-							assert.equal(bufferUtils.getInt32(paramBuffer, 0), pairSizes[index].keySize + 2147483648);
+							assert.equal(paramBuffer.readUInt32BE(0), pairSizes[index].keySize + 2147483648);
 						}
 						else {
 							assert.equal(paramBuffer[0], pairSizes[index].keySize);
@@ -396,7 +395,7 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 						var offset = (pairSizes[index].keySize > 127) ? 4 : 1;
 
 						if(pairSizes[index].valueSize > 127) {
-							assert.equal(bufferUtils.getInt32(paramBuffer, offset), pairSizes[index].valueSize + 2147483648);
+							assert.equal(paramBuffer.readUInt32BE(offset), pairSizes[index].valueSize + 2147483648);
 						}
 						else {
 							assert.equal(paramBuffer[offset], pairSizes[index].valueSize);
@@ -407,24 +406,24 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 						var offset = ((pairSizes[index].keySize > 127) ? 4 : 1) + ((pairSizes[index].valueSize > 127) ? 4 : 1);
 						assert.equal(paramBuffer.toString("utf8", offset, pairSizes[index].keySize + offset), param[0]);
 					},
-					
+
 					"value is correct": function(paramBuffer) {
 						var offset = ((pairSizes[index].keySize > 127) ? 4 : 1) + ((pairSizes[index].valueSize > 127) ? 4 : 1);
 						assert.equal(paramBuffer.toString("utf8", pairSizes[index].keySize + offset), param[1]);
 					}
 				};
-				
+
 				currentPos += paramSizes[index];
 			});
-			
+
 			return tests;
 		}
-		case fastcgi.records.Data.TYPE: 
+		case fastcgi.records.Data.TYPE:
 		case fastcgi.records.StdIn.TYPE:
 		case fastcgi.records.StdOut.TYPE:
 		case fastcgi.records.StdErr.TYPE: {
 			tests["body data is correct"] = function(body) {
-				var dataAsBuffer = Buffer.isBuffer(record.data) ? record.data : new Buffer(record.data); 
+				var dataAsBuffer = Buffer.isBuffer(record.data) ? record.data : new Buffer(record.data);
 				for(var i = 0; i < dataAsBuffer.length; i++) {
 					assert.equal(body[i], dataAsBuffer[i], "Data at index #" + i + " does not match.");
 				}
@@ -436,7 +435,7 @@ var createRecordBodyTests = function(record, deferredContentLengthFn) {
 			tests["type is correct"] = function(body) {
 				assert.equal(body[0], record.type);
 			};
-			
+
 			return tests;
 		}
 	}
@@ -454,49 +453,49 @@ var createWriteRecordTest = function(record) {
 			fcgiStream.writeRecord(requestId, record);
 			return fcgiStream;
 		},
-		
+
 		"written to underlying stream": function(fcgiStream) {
 			assert.isTrue(fcgiStream._writableStream.size() > 0);
 		},
-		
+
 		"has at least 8 bytes": function(fcgiStream) {
 			assert.isTrue(fcgiStream._writableStream.size() >= 8);
-			
+
 			// Grab header now for next few vows.
 			header = fcgiStream._writableStream.getContents(8);
-			
+
 			// Save content and padding lengths.
-			contentLength = bufferUtils.getInt16(header, 4);
+			contentLength = header.readUInt16BE(4);
 			paddingLength = header[6];
 		},
 
 		"header has correct version": function() {
 			assert.equal(header[0], 1);
 		},
-		
+
 		"header has correct type": function() {
 			assert.equal(header[1], record.TYPE);
 		},
 
 		"header has correct requestId": function() {
-			assert.equal(bufferUtils.getInt16(header, 2), requestId);
+			assert.equal(header.readUInt16BE(2), requestId);
 		},
-		
+
 		"body size matches record calculation": function() {
 			assert.equal(contentLength, record.getSize());
 		},
-		
+
 		"body and padding are correct length": function(fcgiStream) {
-			assert.equal(fcgiStream._writableStream.size(), contentLength + paddingLength); 
+			assert.equal(fcgiStream._writableStream.size(), contentLength + paddingLength);
 		},
-		
+
 		"padding is correct length": function(fcgiStream) {
-			assert.equal(paddingLength, contentLength % 8); 
+			assert.equal(paddingLength, contentLength % 8);
 		}
 	};
-	
+
 	if(record.getSize()) {
-		context["the body"] = createRecordBodyTests(record, function() { return contentLength; });	
+		context["the body"] = createRecordBodyTests(record, function() { return contentLength; });
 	}
 
 	return context;
@@ -508,14 +507,14 @@ var addReadRecordTests = function(theRecord, context) {
 		context["*role* is correct"] = function(wtf, requestId, record) {
 			assert.equal(record.role, theRecord.role);
 		};
-		
+
 		context["*flags* is correct"] = function(wtf, requestId, record) {
 			assert.equal(record.flags, theRecord.flags);
 		};
 
 		break;
 	}
-	
+
 	case fastcgi.records.EndRequest.TYPE: {
 		context["*appStatus* is correct"] = function(wtf, requestId, record) {
 			assert.equal(record.appStatus, theRecord.appStatus);
@@ -524,10 +523,10 @@ var addReadRecordTests = function(theRecord, context) {
 		context["*protocolStatus* is correct"] = function(wtf, requestId, record) {
 			assert.equal(record.protocolStatus, theRecord.protocolStatus);
 		};
-		
+
 		break;
 	}
-	
+
 	case fastcgi.records.UnknownType.TYPE: {
 		context["*type* is correct"] = function(wtf, requestId, record) {
 			assert.equal(record.type, theRecord.type);
@@ -535,7 +534,7 @@ var addReadRecordTests = function(theRecord, context) {
 
 		break;
 	}
-	
+
 	case fastcgi.records.StdIn.TYPE:
 	case fastcgi.records.StdOut.TYPE:
 	case fastcgi.records.StdErr.TYPE:
@@ -579,7 +578,7 @@ var createReadRecordTest = function(chunkSize, theRecord) {
 		theRecord = chunkSize;
 		chunkSize = undefined;
 	}
-	
+
 	var theRequestId = Math.floor(Math.random() * 65535 + 1);
 	var fastcgiStream = createFCGIStream(chunkSize);
 
@@ -588,13 +587,13 @@ var createReadRecordTest = function(chunkSize, theRecord) {
 			fastcgiStream.on("record", function(requestId, record) {
 				this.callback(null, requestId, record);
 			}.bind(this));
-			
+
 			fastcgiStream.writeRecord(theRequestId, theRecord);
 			var buf = fastcgiStream._writableStream.getContents();
 			fastcgiStream._readableStream.put(buf);
 		},
-		
-		// TODO: re-enable this once I've fixed an issue with ReadableStream not reporting correct size inside an emitted data event. 
+
+		// TODO: re-enable this once I've fixed an issue with ReadableStream not reporting correct size inside an emitted data event.
 		/*"read buffer was fully read": function() {
 			assert.equal(fastcgiStream._readableStream.size(), 0);
 		},*/
@@ -607,13 +606,13 @@ var createReadRecordTest = function(chunkSize, theRecord) {
 			assert.equal(record.TYPE, theRecord.TYPE);
 		}
 	};
-	
+
 	addReadRecordTests(theRecord, context);
 
 	return context;
 };
 
-var createMultiReadRecordTest = function(constructor) {	
+var createMultiReadRecordTest = function(constructor) {
 	var requestIds = [];
 	var records = [];
 	var fastcgiStream = createFCGIStream();
@@ -628,7 +627,7 @@ var createMultiReadRecordTest = function(constructor) {
 	}
 
 	var buf = fastcgiStream._writableStream.getContents();
-	
+
 	var context = {
 		topic: function() {
 			var actualRequestIds = [];
@@ -639,11 +638,11 @@ var createMultiReadRecordTest = function(constructor) {
 				actualRecords.push(record);
 				if(actualRequestIds.length == 5) this.callback(null, actualRequestIds, actualRecords);
 			}.bind(this));
-			
+
 			fastcgiStream._readableStream.put(buf);
 		}
 	};
-	
+
 	for(var i = 0; i < 5; i++) {
 
 		context["(record #" + i + ")"] = (function(expectedRequestId, expectedRecord) {
@@ -651,7 +650,7 @@ var createMultiReadRecordTest = function(constructor) {
 				topic: function(actualRequestIds, actualRecords) {
 					this.callback(null, actualRequestIds.shift(), actualRecords.shift());
 				},
-				
+
 				"*requestId* is correct": function(wtf, requestId) {
 					assert.equal(requestId, expectedRequestId);
 				},
@@ -660,13 +659,13 @@ var createMultiReadRecordTest = function(constructor) {
 					assert.equal(record.TYPE, expectedRecord.TYPE);
 				}
 			};
-			
+
 			addReadRecordTests(expectedRecord, context);
-			
+
 			return context;
 		})(requestIds[i], records[i]);
 	}
-	
+
 	return context;
 };
 
@@ -679,7 +678,7 @@ var largeParams = [["ThisIsAReallyLongHeaderNameItIsGoingToExceedOneHundredAndTw
 var smallUnicodeParams = [["Параметр", "Значение"]];
 var largeUnicodeParams = [["Параметр", "Очень-очень-длинное-значение-которое-явно-больше-ста-двадцати-семи-байт-в-длину"]];
 var smallKeys = ["Test", "Value", "AnotherTest", "AnotherValue"];
-var largeKeys = ["ThisIsAReallyLongHeaderNameItIsGoingToExceedOneHundredAndTwentySevenBytesJustYouWatchAreYouReadyOkHereWeGoBlahBlahBlahBlahBlahBlah", "ThisIsAReallyLongHeaderValueItIsGoingToExceedOneHundredAndTwentySevenBytesJustYouWatchAreYouReadyOkHereWeGoBlahBlahBlahBlahBlahBlah", "AnotherTest", "AnotherValue"]; 
+var largeKeys = ["ThisIsAReallyLongHeaderNameItIsGoingToExceedOneHundredAndTwentySevenBytesJustYouWatchAreYouReadyOkHereWeGoBlahBlahBlahBlahBlahBlah", "ThisIsAReallyLongHeaderValueItIsGoingToExceedOneHundredAndTwentySevenBytesJustYouWatchAreYouReadyOkHereWeGoBlahBlahBlahBlahBlahBlah", "AnotherTest", "AnotherValue"];
 var basicString = "Basic String";
 var unicodeString = '\u00bd + \u00bc = \u00be';
 
@@ -688,7 +687,7 @@ var createDummyBuffer = function() {
 	for(var i = 0, len = dummyBuffer.length; i < len; i++) {
 		dummyBuffer[i] = Math.floor(Math.random() * 255 + 1);
 	}
-	
+
 	return dummyBuffer;
 };
 
